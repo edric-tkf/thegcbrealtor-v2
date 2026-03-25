@@ -32,16 +32,19 @@ const TRACK_RECORD_ITEMS = [
 
 const TESTIMONIALS = [
   {
+    id: "buyer-d10",
     quote:
       "Emily was clear, responsive, and strategic throughout the process. We closed smoothly and on timeline.",
     author: "Private Buyer · District 10",
   },
   {
+    id: "seller-gcb",
     quote:
       "Her market knowledge and negotiation support gave us confidence from viewing to completion.",
     author: "Seller · Good Class Bungalow",
   },
   {
+    id: "family-office",
     quote:
       "Professional, discreet, and detail-oriented. We appreciated her honest advice at every stage.",
     author: "Family Office Representative",
@@ -394,10 +397,8 @@ function HomePage({ allGcb, loading, error, loadAll }: any) {
   const goPage = (p: number) => { setPage(p); window.scrollTo({ top: 0, behavior: "smooth" }); };
   const submitForm = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!leadName.trim() || !/^\d{8}$/.test(leadPhone.replace(/\s/g, ""))) {
-      setLeadStatus("Please enter your name and a valid 8-digit Singapore mobile number.");
-      return;
-    }
+    if (!leadName.trim()) return setLeadStatus("Please enter your name.");
+    if (!/^\d{8}$/.test(leadPhone.replace(/\s/g, ""))) return setLeadStatus("Please enter a valid 8-digit Singapore mobile number.");
     const text = encodeURIComponent(
       `Hi Emily, I would like to enquire.\n\nName: ${leadName}\nPhone: +65${leadPhone.replace(/\s/g, "")}\nMessage: ${leadMessage || "N/A"}`
     );
@@ -504,8 +505,8 @@ function HomePage({ allGcb, loading, error, loadAll }: any) {
         <div className="rs-section-inner">
           <h2>Testimonials</h2>
           <div className="rs-testimonial-grid">
-            {TESTIMONIALS.map((item, idx) => (
-              <article key={idx} className="rs-testimonial-card">
+            {TESTIMONIALS.map((item) => (
+              <article key={item.id} className="rs-testimonial-card">
                 <p className="rs-testimonial-quote">“{item.quote}”</p>
                 <p className="rs-testimonial-author">{item.author}</p>
               </article>
