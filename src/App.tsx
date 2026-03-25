@@ -23,6 +23,31 @@ const FIREBASE_CONFIG = {
   appId: "1:960940896695:web:4304905d835a8823afb832",
 };
 
+const TRACK_RECORD_ITEMS = [
+  { area: "Nassim", district: "D10", price: "S$38.8M", year: "2025" },
+  { area: "Bishopsgate", district: "D10", price: "S$46.0M", year: "2024" },
+  { area: "Leedon Park", district: "D10", price: "S$27.5M", year: "2024" },
+  { area: "Cluny Hill", district: "D10", price: "S$32.2M", year: "2023" },
+];
+
+const TESTIMONIALS = [
+  {
+    quote:
+      "Emily was clear, responsive, and strategic throughout the process. We closed smoothly and on timeline.",
+    author: "Private Buyer · District 10",
+  },
+  {
+    quote:
+      "Her market knowledge and negotiation support gave us confidence from viewing to completion.",
+    author: "Seller · Good Class Bungalow",
+  },
+  {
+    quote:
+      "Professional, discreet, and detail-oriented. We appreciated her honest advice at every stage.",
+    author: "Family Office Representative",
+  },
+];
+
 function isAuthValid() {
   try {
     const exp = parseInt(localStorage.getItem(AUTH_KEY + "_exp") || "0", 10);
@@ -335,6 +360,10 @@ function HomePage({ allGcb, loading, error, loadAll }: any) {
   const [sortBy, setSortBy] = useState("default");
   const [page, setPage] = useState(1);
   const [headerVisible, setHeaderVisible] = useState(true);
+  const [leadName, setLeadName] = useState("");
+  const [leadPhone, setLeadPhone] = useState("");
+  const [leadMessage, setLeadMessage] = useState("");
+  const [leadStatus, setLeadStatus] = useState("");
   const headerRef = useRef<HTMLDivElement | null>(null);
   const mobileHeaderRef = useRef<HTMLDivElement | null>(null);
 
@@ -363,6 +392,18 @@ function HomePage({ allGcb, loading, error, loadAll }: any) {
   const displayed = sorted.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE);
 
   const goPage = (p: number) => { setPage(p); window.scrollTo({ top: 0, behavior: "smooth" }); };
+  const submitForm = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!leadName.trim() || !/^\d{8}$/.test(leadPhone.replace(/\s/g, ""))) {
+      setLeadStatus("Please enter your name and a valid 8-digit Singapore mobile number.");
+      return;
+    }
+    const text = encodeURIComponent(
+      `Hi Emily, I would like to enquire.\n\nName: ${leadName}\nPhone: +65${leadPhone.replace(/\s/g, "")}\nMessage: ${leadMessage || "N/A"}`
+    );
+    window.open(`https://wa.me/${WHATSAPP_NO}?text=${text}`, "_blank", "noopener,noreferrer");
+    setLeadStatus("Opening WhatsApp to send your enquiry.");
+  };
 
   return (
     <>
@@ -426,7 +467,7 @@ function HomePage({ allGcb, loading, error, loadAll }: any) {
         </div>
       </div>
 
-      <div className="rs-container">
+      <section id="listings" className="rs-container">
         <div className="rs-grid">
           {loading && Array.from({ length: 8 }).map((_, i) => <div key={i} className="rs-skeleton-card" style={{ height: 350, background: '#eee', borderRadius: 14 }} />)}
           {!loading && error && <div className="rs-state-center"><p>⚠ {error}</p><button className="rs-retry-btn" onClick={loadAll}>Try Again</button></div>}
@@ -441,7 +482,76 @@ function HomePage({ allGcb, loading, error, loadAll }: any) {
             <button className="rs-page-btn" disabled={safePage === totalPages} onClick={() => goPage(safePage + 1)}>Next →</button>
           </div>
         )}
-      </div>
+      </section>
+
+      <section id="track-record" className="rs-section rs-section-track">
+        <div className="rs-section-inner">
+          <h2>Closing Track Record</h2>
+          <p className="rs-section-sub">Recent selected transactions.</p>
+          <div className="rs-track-grid">
+            {TRACK_RECORD_ITEMS.map((item) => (
+              <article key={`${item.area}-${item.year}`} className="rs-track-card">
+                <div className="rs-track-price">{item.price}</div>
+                <div className="rs-track-area">{item.area}</div>
+                <div className="rs-track-meta">{item.district} · Closed {item.year}</div>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section id="testimonial" className="rs-section rs-section-testimonial">
+        <div className="rs-section-inner">
+          <h2>Testimonials</h2>
+          <div className="rs-testimonial-grid">
+            {TESTIMONIALS.map((item, idx) => (
+              <article key={idx} className="rs-testimonial-card">
+                <p className="rs-testimonial-quote">“{item.quote}”</p>
+                <p className="rs-testimonial-author">{item.author}</p>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section id="submit-form" className="rs-section rs-section-form">
+        <div className="rs-section-inner">
+          <h2>Form</h2>
+          <form className="rs-contact-form" onSubmit={submitForm}>
+            <label>
+              Name
+              <input
+                type="text"
+                value={leadName}
+                onChange={(e) => setLeadName(e.target.value)}
+                placeholder="Your name"
+                required
+              />
+            </label>
+            <label>
+              Mobile Number (+65)
+              <input
+                type="tel"
+                value={leadPhone}
+                onChange={(e) => setLeadPhone(e.target.value.replace(/\D/g, "").slice(0, 8))}
+                placeholder="91234567"
+                required
+              />
+            </label>
+            <label>
+              Message
+              <textarea
+                value={leadMessage}
+                onChange={(e) => setLeadMessage(e.target.value)}
+                placeholder="Tell us what you are looking for"
+                rows={4}
+              />
+            </label>
+            <button type="submit" className="rs-form-submit">Submit via WhatsApp</button>
+            {leadStatus && <p className="rs-form-status">{leadStatus}</p>}
+          </form>
+        </div>
+      </section>
     </>
   );
 }
