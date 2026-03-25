@@ -7,14 +7,11 @@ const AUTH_KEY = "gcb_auth_v2";
 const API_LISTINGS = "https://www.realstarpremier.com/api/agents/4554/properties";
 const WHATSAPP_NO = "6590069222";
 const AGENT_PHOTO = "https://edricteokf-resources.s3.ap-southeast-1.amazonaws.com/emilyho_agent_withbackground.png";
-const BANNER_BG = "https://edricteokf-resources.s3.ap-southeast-1.amazonaws.com/forms+headers/emilyho_formbanner_PLAIN.png";
 const REALTOR_IMG = "https://edricteokf-resources.s3.ap-southeast-1.amazonaws.com/emilyho-tpbg.png";
 const PAGE_SIZE = 16;
-const GRID_PAD = 48;
 const ADMIN_PIN = "2809";
 
 const ET_OAUTH_URL = "https://et-central.softr.app";
-const ET_LOGO = "https://assets.softr-files.com/applications/2b3b2fa2-58d2-471a-a186-e4111e67be56/assets/60b919e6-cf65-4e9c-92a5-f43d244c15a1.png";
 
 const FIREBASE_CONFIG = {
   apiKey: "AIzaSyDl8vRwx-bRttBipdZpjfT5onlfzOu6w9M",
@@ -47,7 +44,10 @@ function getImages(p: any) {
   return [];
 }
 function stripHtml(html: string) {
-  return (html || "").replace(/<br\s*\/?>/gi, "\n").replace(/<[^>]*>/g, "").replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">").trim();
+  if (!html) return "";
+  const normalized = html.replace(/<br\s*\/?>/gi, "\n");
+  const doc = new DOMParser().parseFromString(normalized, "text/html");
+  return (doc.body.textContent || "").replace(/\u00a0/g, " ").trim();
 }
 
 // ─── Icons ────────────────────────────────────────────────────────────────────
@@ -60,15 +60,15 @@ const LinkIcon = () => <svg width="13" height="13" viewBox="0 0 24 24" fill="non
 
 // ─── Firebase OTP hook ────────────────────────────────────────────────────────
 function useFirebaseOTP(onSuccess: () => void) {
-  const recaptchaRef = useRef < any > (null);
-  const confirmRef = useRef < any > (null);
+  const recaptchaRef = useRef<any>(null);
+  const confirmRef = useRef<any>(null);
   const digitRefs = useRef < any[] > ([]);
   const [step, setStep] = useState("form");
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [otpDigits, setOtpDigits] = useState(["", "", "", "", "", ""]);
-  const [formMsg, setFormMsg] = useState < any > (null);
-  const [otpMsg, setOtpMsg] = useState < any > (null);
+  const [formMsg, setFormMsg] = useState<any>(null);
+  const [otpMsg, setOtpMsg] = useState<any>(null);
   const [sending, setSending] = useState(false);
   const [verifying, setVerifying] = useState(false);
 
@@ -223,7 +223,7 @@ function AuthGate({ onAuthenticated, onClose }: { onAuthenticated: () => void, o
             <div className="rs-otp-step active">
               <div className="rs-otp-digit-row">
                 {otp.otpDigits.map((d, i) => (
-                  <input key={i} className="rs-otp-digit" maxLength={1} ref={el => otp.digitRefs.current[i] = el} value={d} onChange={e => otp.handleDigit(i, e.target.value)} />
+                  <input key={i} className="rs-otp-digit" maxLength={1} ref={el => { otp.digitRefs.current[i] = el; }} value={d} onChange={e => otp.handleDigit(i, e.target.value)} />
                 ))}
               </div>
               <button className="rs-otp-btn" onClick={otp.verifyOtp} disabled={otp.verifying}>Verify & Enter →</button>
@@ -288,7 +288,7 @@ function MobileCarousel({ images, ytId }: { images: string[], ytId: string | nul
 
 function PropertyCard({ property, idx }: any) {
   const [visible, setVisible] = useState(false);
-  const [imgIdx, setImgIdx] = useState(0);
+  const [imgIdx] = useState(0);
   const [imgErr, setImgErr] = useState(false);
   const images = getImages(property);
 
@@ -335,11 +335,11 @@ function HomePage({ allGcb, loading, error, loadAll }: any) {
   const [sortBy, setSortBy] = useState("default");
   const [page, setPage] = useState(1);
   const [headerVisible, setHeaderVisible] = useState(true);
-  const headerRef = useRef(null);
-  const mobileHeaderRef = useRef(null);
+  const headerRef = useRef<HTMLDivElement | null>(null);
+  const mobileHeaderRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
-    const targets = [headerRef.current, mobileHeaderRef.current].filter(Boolean);
+    const targets = [headerRef.current, mobileHeaderRef.current].filter((el): el is HTMLDivElement => el !== null);
     if (!targets.length) return;
     const obs = new IntersectionObserver(entries => setHeaderVisible(entries.some(e => e.isIntersecting)), { threshold: 0.05 });
     targets.forEach(t => obs.observe(t));
@@ -347,13 +347,13 @@ function HomePage({ allGcb, loading, error, loadAll }: any) {
   }, []);
 
   const q = search.trim().toLowerCase();
-  let filtered = q ? allGcb.filter((p: any) =>
+  const filtered = q ? allGcb.filter((p: any) =>
     (p.HEADER_TITLE || "").toLowerCase().includes(q) ||
     (p.AREA || "").toLowerCase().includes(q) ||
     (p.DISTRICT || "").toString().includes(q)
   ) : allGcb;
 
-  let sorted = [...filtered];
+  const sorted = [...filtered];
   if (sortBy === "price-asc") sorted.sort((a, b) => parseInt((a.SELLING_PRICE || "0").replace(/\D/g, "")) - parseInt((b.SELLING_PRICE || "0").replace(/\D/g, "")));
   if (sortBy === "price-desc") sorted.sort((a, b) => parseInt((b.SELLING_PRICE || "0").replace(/\D/g, "")) - parseInt((a.SELLING_PRICE || "0").replace(/\D/g, "")));
   if (sortBy === "land-desc") sorted.sort((a, b) => parseInt((b.LANDSIZE_SQFT || "0").replace(/,/g, "")) - parseInt((a.LANDSIZE_SQFT || "0").replace(/,/g, "")));
@@ -449,7 +449,7 @@ function HomePage({ allGcb, loading, error, loadAll }: any) {
 function PropertyPage({ allGcb, loading }: any) {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [property, setProperty] = useState < any > (null);
+  const [property, setProperty] = useState<any>(null);
   const [showAuth, setShowAuth] = useState(false);
   const [copied, setCopied] = useState(false);
 
@@ -484,7 +484,7 @@ function PropertyPage({ allGcb, loading }: any) {
         <title>{property.HEADER_TITLE} | Emily Ho GCB Listings</title>
         <meta name="description" content={`${property.PROPERTY_TYPE} in ${property.AREA} (D${property.DISTRICT}). Land: ${property.LANDSIZE_SQFT} sqft. Price: ${property.SELLING_PRICE}.`} />
         <meta name="robots" content="index, follow" />
-        <link rel="canonical" href={`https://www.thegcbrealtor.com/#/property/${property.id}`} />
+        <link rel="canonical" href={`https://www.thegcbrealtor.com/property/${property.id}`} />
         <meta property="og:title" content={property.HEADER_TITLE} />
         <meta property="og:image" content={images[0]} />
         <script src="https://cdn.tailwindcss.com"></script>
@@ -497,7 +497,7 @@ function PropertyPage({ allGcb, loading }: any) {
 
         <div className="rs-modal-gallery">
           {ytId && <div className="rs-modal-gallery-video"><iframe src={`https://www.youtube.com/embed/${ytId}`} allowFullScreen /></div>}
-          <div className="rs-modal-gallery-imgs">{images.map((src, i) => <div key={i} className="rs-modal-gallery-img-item"><img src={src} alt="Property" /></div>)}</div>
+          <div className="rs-modal-gallery-imgs">{images.map((src: string, i: number) => <div key={i} className="rs-modal-gallery-img-item"><img src={src} alt="Property" /></div>)}</div>
         </div>
 
         <div className="rs-mobile-media">
@@ -931,9 +931,9 @@ const GLOBAL_CSS = `
 `;
 
 function AppContent() {
-  const [allGcb, setAllGcb] = useState < any[] > ([]);
+  const [allGcb, setAllGcb] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState < string | null > (null);
+  const [error, setError] = useState<string | null>(null);
   const location = useLocation();
 
   const loadAll = useCallback(async () => {
