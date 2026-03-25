@@ -894,6 +894,88 @@ const GLOBAL_CSS = `
   .rs-spinner { width: 38px; height: 38px; border: 3px solid var(--border); border-top-color: var(--gold); border-radius: 50%; animation: spin 0.72s linear infinite; margin: 0 auto 14px; }
   .rs-retry-btn { margin-top: 12px; padding: 8px 20px; border-radius: 8px; border: none; background: var(--primary); color: #fff; font-family: 'Google Sans Flex', sans-serif; font-weight: 600; cursor: pointer; }
 
+  /* Additional sections */
+  .rs-section {
+    padding: 32px 20px 48px;
+  }
+  .rs-section-inner {
+    width: min(1200px, 100%);
+    margin: 0 auto;
+  }
+  .rs-section h2 {
+    font-size: clamp(1.4rem, 2.4vw, 2rem);
+    margin-bottom: 10px;
+  }
+  .rs-section-sub {
+    color: #5e5a53;
+    margin-bottom: 18px;
+  }
+  .rs-track-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 14px;
+  }
+  .rs-track-card {
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px;
+  }
+  .rs-track-price { font-size: 1.1rem; font-weight: 800; color: #111; }
+  .rs-track-area { font-size: 0.9rem; font-weight: 700; color: #282420; margin-top: 3px; }
+  .rs-track-meta { font-size: 0.78rem; color: #6f695f; margin-top: 4px; }
+  .rs-testimonial-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 14px;
+  }
+  .rs-testimonial-card {
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px;
+  }
+  .rs-testimonial-quote { color: #2f2a24; line-height: 1.5; }
+  .rs-testimonial-author { margin-top: 10px; font-size: 0.78rem; color: #6f695f; font-weight: 700; }
+  .rs-contact-form {
+    display: grid;
+    gap: 12px;
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px;
+  }
+  .rs-contact-form label {
+    display: grid;
+    gap: 6px;
+    font-size: 0.84rem;
+    color: #3d382f;
+    font-weight: 600;
+  }
+  .rs-contact-form input,
+  .rs-contact-form textarea {
+    width: 100%;
+    border: 1px solid #d8d2c9;
+    border-radius: 9px;
+    padding: 10px 12px;
+    font: inherit;
+    color: #1d1914;
+    background: #fff;
+  }
+  .rs-form-submit {
+    width: fit-content;
+    border: none;
+    background: var(--green);
+    color: #fff;
+    padding: 10px 16px;
+    border-radius: 9px;
+    font-family: 'Google Sans Flex', sans-serif;
+    font-weight: 700;
+    cursor: pointer;
+  }
+  .rs-form-submit:hover { background: var(--green-hover); }
+  .rs-form-status { font-size: 0.8rem; color: #514b42; }
+
   /* Property Detail View (Modal) */
   .rs-modal-backdrop {
     position: fixed;
@@ -973,7 +1055,12 @@ const GLOBAL_CSS = `
 
   /* Responsive */
   @media (max-width: 1200px) { .rs-grid { grid-template-columns: repeat(3,1fr); } }
-  @media (max-width: 900px)  { .rs-grid { grid-template-columns: repeat(2,1fr); gap: 16px; } .rs-container { padding-left: 24px; padding-right: 24px; } }
+  @media (max-width: 900px)  {
+    .rs-grid { grid-template-columns: repeat(2,1fr); gap: 16px; }
+    .rs-container { padding-left: 24px; padding-right: 24px; }
+    .rs-track-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .rs-testimonial-grid { grid-template-columns: 1fr; }
+  }
   @media (max-width: 640px) {
     .rs-header { display: none; }
     .rs-mobile-header {
@@ -1030,6 +1117,9 @@ const GLOBAL_CSS = `
     .rs-search:focus { width: 190px; }
     .rs-container { padding: 20px 16px 60px; }
     .rs-grid { grid-template-columns: 1fr; gap: 14px; }
+    .rs-section { padding: 22px 16px 36px; }
+    .rs-track-grid { grid-template-columns: 1fr; }
+    .rs-form-submit { width: 100%; }
 
     .rs-modal-backdrop { padding: 0; align-items: flex-start; }
     .rs-modal { flex-direction: column; border-radius: 0; width: 100%; min-height: 100vh; max-height: none; overflow: visible; align-self: auto; margin: 0; }
@@ -1045,6 +1135,27 @@ function AppContent() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const location = useLocation();
+
+  useEffect(() => {
+    const sectionByPath: Record<string, string> = {
+      "/": "listings",
+      "/listings": "listings",
+      "/track-record": "track-record",
+      "/testimonial": "testimonial",
+      "/submit-form": "submit-form",
+    };
+    const sectionId = sectionByPath[location.pathname];
+    if (!sectionId) return;
+    const scroll = () => {
+      const el = document.getElementById(sectionId);
+      if (el) {
+        el.scrollIntoView({ behavior: "smooth", block: "start" });
+      } else {
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }
+    };
+    setTimeout(scroll, 0);
+  }, [location.pathname]);
 
   const loadAll = useCallback(async () => {
     setLoading(true); setError(null);
