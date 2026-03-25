@@ -994,8 +994,14 @@ function AppContent() {
       <HomePage allGcb={allGcb} loading={loading} error={error} loadAll={loadAll} />
       <Routes>
         <Route path="/" element={null} />
+        <Route path="/listings" element={null} />
+        <Route path="/track-record" element={null} />
+        <Route path="/testimonial" element={null} />
+        <Route path="/submit-form" element={null} />
+        <Route path="/track record" element={<Navigate to="/track-record" replace />} />
+        <Route path="/submit form" element={<Navigate to="/submit-form" replace />} />
         <Route path="/property/:id" element={<PropertyPage allGcb={allGcb} loading={loading} />} />
-        <Route path="*" element={<Navigate to="/" replace />} />
+        <Route path="*" element={<Navigate to="/listings" replace />} />
       </Routes>
     </div>
   );
